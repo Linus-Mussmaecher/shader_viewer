@@ -42,9 +42,9 @@ impl State {
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
+                    label: None,
                     features: wgpu::Features::empty(),
                     limits: wgpu::Limits::default(),
-                    label: None,
                 },
                 None, // Trace path
             )
@@ -106,44 +106,45 @@ impl State {
         // get the current 'framebuffer'
         let output = self.surface.get_current_texture()?;
         // create a 'view' = definition how render code interacts with this texture
-        // let view = output
-        //     .texture
-        //     .create_view(&wgpu::TextureViewDescriptor::default());
-        // create a command encoder
-        // let mut encoder = self
-        //     .device
-        //     .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        //         label: Some("Render Encoder"),
-        //     });
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        //create a command encoder
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Render Encoder"),
+            });
 
         // create a render pass that clears the screen
-        // {
-        //     let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-        //         // id, bascially
-        //         label: Some("Render Pass"),
-        //         // what to do with color
-        //         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-        //             // view from earlier
-        //             view: &view,
-        //             // no multisampling yet
-        //             resolve_target: None,
-        //             ops: wgpu::Operations {
-        //                 load: wgpu::LoadOp::Clear(wgpu::Color {
-        //                     r: 0.1,
-        //                     g: 0.2,
-        //                     b: 0.6,
-        //                     a: 1.0,
-        //                 }),
-        //                 store: true,
-        //             },
-        //         })],
-        //         // what to do with depth
-        //         depth_stencil_attachment: None,
-        //     });
-        // }
+        {
+            let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                // id, bascially
+                label: Some("Render Pass"),
+                // what to do with color
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    // view from earlier
+                    view: &view,
+                    // no multisampling yet
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.1,
+                            g: 0.2,
+                            b: 0.6,
+                            a: 1.0,
+                        }),
+                        store: true,
+                    },
+                })],
+                // what to do with depth
+                depth_stencil_attachment: None,
+            });
+        }
 
         // submit this pass to the command queue
-        //self.queue.submit(std::iter::once(encoder.finish()));
+        self.queue.submit(std::iter::once(encoder.finish()));
+        output.present();
 
         Ok(())
     }

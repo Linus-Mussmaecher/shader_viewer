@@ -47,6 +47,24 @@ async fn run() {
                             // new_inner_size is &&mut so we have to dereference it twice
                             state.resize(**new_inner_size);
                         }
+                        WindowEvent::KeyboardInput {
+                            input:
+                                KeyboardInput {
+                                    virtual_keycode: Some(VirtualKeyCode::F11),
+                                    state: ElementState::Pressed,
+                                    ..
+                                },
+                            ..
+                        } => {
+                            let window = state.window();
+                            if window.fullscreen().is_none() {
+                                window.set_fullscreen(Some(winit::window::Fullscreen::Borderless(
+                                    None,
+                                )));
+                            } else {
+                                window.set_fullscreen(None);
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -54,9 +72,7 @@ async fn run() {
             Event::RedrawRequested(window_id) if window_id == state.window().id() => {
                 state.update();
                 match state.render() {
-                    Ok(_) => {
-                        println!("yay");
-                    }
+                    Ok(_) => {}
                     // Reconfigure the surface if lost
                     Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
                     // The system is out of memory, we should probably quit

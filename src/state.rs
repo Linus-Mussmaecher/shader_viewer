@@ -59,7 +59,7 @@ impl State {
             .iter()
             .copied()
             .find(|f| f.is_srgb())
-            .unwrap_or(surface_caps.formats[0]);
+            .unwrap_or(surface_caps.formats.first().copied().unwrap());
 
         // create surface config
         let config = wgpu::SurfaceConfiguration {
@@ -67,8 +67,8 @@ impl State {
             format: surface_format,
             width: size.width,
             height: size.height,
-            present_mode: surface_caps.present_modes[0],
-            alpha_mode: surface_caps.alpha_modes[0],
+            present_mode: surface_caps.present_modes.first().copied().unwrap(),
+            alpha_mode: surface_caps.alpha_modes.first().copied().unwrap(),
             view_formats: vec![],
         };
         surface.configure(&device, &config);

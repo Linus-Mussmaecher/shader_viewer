@@ -28,7 +28,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         val = 0.7;
     }
 
-    return vec4<f32>(0.3, 0.4, val, 1.0);
+    return vec4<f32>(0.4, 0.4, val, 1.0);
 }
 
 fn sdUnevenCapsule(p: vec2<f32>, r1: f32, r2: f32, h: f32 ) -> f32

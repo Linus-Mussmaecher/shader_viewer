@@ -1,3 +1,4 @@
+use wgpu::util::DeviceExt;
 use winit::window::Window;
 
 pub struct State {
@@ -8,11 +9,55 @@ pub struct State {
     pub size: winit::dpi::PhysicalSize<u32>,
     window: Window,
     render_pipeline: wgpu::RenderPipeline,
+
+    // buffers
+    vertex_buffer: wgpu::Buffer,
 }
 
 /// Tree: instance  -> surface  -> device
 ///                             -> queue
 ///                 -> surface
+const VERTICES: &[Vertex] = &[
+    Vertex {
+        position: [0.0, 0.7, 0.0],
+    },
+    Vertex {
+        position: [-0.5, -0.3, 0.0],
+    },
+    Vertex {
+        position: [0.5, -0.3, 0.0],
+    },
+];
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+struct Vertex {
+    position: [f32; 3],
+}
+
+impl Vertex {
+    const ATTRIBS: [wgpu::VertexAttribute; 2] =
+        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
+
+    fn desc() -> wgpu::VertexBufferLayout<'static> {
+        wgpu::VertexBufferLayout {
+            // how far are two elements in the buffer from each other
+            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            // is an element in this buffer a single vertex or a single instance?
+            step_mode: wgpu::VertexStepMode::Vertex,
+            // what are the contents of this buffer?
+            attributes: &Self::ATTRIBS,
+            // &[wgpu::VertexAttribute {
+            //     // starting point
+            //     offset: 0,
+            //     // where to store this? corresponds to attributes of struct
+            //     shader_location: 0,
+            //     // basically just the data type
+            //     format: wgpu::VertexFormat::Float32x3,
+            // }],
+        }
+    }
+}
 
 impl State {
     pub(crate) async fn new(window: Window) -> Self {
@@ -90,7 +135,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[],
+                buffers: &[Vertex::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -122,6 +167,16 @@ impl State {
             multiview: None,
         });
 
+        // create the buffer
+        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            // name
+            label: Some("Vertex Buffer"),
+            // actual contents
+            contents: bytemuck::cast_slice(VERTICES),
+            // vertex buffer or index buffer?
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
         Self {
             surface,
             device,
@@ -130,6 +185,7 @@ impl State {
             size,
             window,
             render_pipeline,
+            vertex_buffer,
         }
     }
 
@@ -192,6 +248,7 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.draw(0..3, 0..1);
         }
 

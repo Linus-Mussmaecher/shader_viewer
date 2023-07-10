@@ -16,11 +16,12 @@ async fn run() {
     let event_loop = EventLoop::new();
 
     let window = WindowBuilder::new()
-        .with_resizable(false)
         .with_inner_size(winit::dpi::Size::Physical(winit::dpi::PhysicalSize {
             width: 630,
             height: 500,
         }))
+        .with_title("GPiU")
+        .with_fullscreen(Some(winit::window::Fullscreen::Borderless(None)))
         .build(&event_loop)
         .expect("Could not init window.");
 
@@ -64,6 +65,17 @@ async fn run() {
                             } else {
                                 window.set_fullscreen(None);
                             }
+                        }
+                        WindowEvent::KeyboardInput {
+                            input:
+                                KeyboardInput {
+                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                                    state: ElementState::Pressed,
+                                    ..
+                                },
+                            ..
+                        } => {
+                            state.window().set_fullscreen(None);
                         }
                         _ => {}
                     }

@@ -13,6 +13,19 @@ pub struct State {
     // buffers
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
+
+    // info
+    info: ShaderInfo,
+    info_buffer: wgpu::Buffer,
+    info_bind_group: wgpu::BindGroup,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct ShaderInfo {
+    time: u32,
+    w: u32,
+    h: u32,
 }
 
 /// Tree: instance  -> surface  -> device
@@ -131,6 +144,42 @@ impl State {
         // create & compile the shaders
         let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 
+        let info = ShaderInfo {
+            time: 0,
+            w: size.width,
+            h: size.height,
+        };
+
+        let info_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Info Buffer"),
+            contents: bytemuck::cast_slice(&[info]),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let info_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("Info Bind Group Layout"),
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+            });
+
+        let info_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("Info Bind Group"),
+            layout: &info_bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: info_buffer.as_entire_binding(),
+            }],
+        });
+
         // create the pipeline
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -138,7 +187,8 @@ impl State {
             layout: Some(
                 &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Render Pipeline Layout"),
-                    ..Default::default()
+                    bind_group_layouts: &[&info_bind_group_layout],
+                    push_constant_ranges: &[],
                 }),
             ),
             vertex: wgpu::VertexState {
@@ -202,6 +252,9 @@ impl State {
             render_pipeline,
             vertex_buffer,
             index_buffer,
+            info,
+            info_buffer,
+            info_bind_group,
         }
     }
 
@@ -222,7 +275,11 @@ impl State {
         false
     }
 
-    pub(crate) fn update(&mut self) {}
+    pub(crate) fn update(&mut self) {
+        self.info.time += 1;
+        self.queue
+            .write_buffer(&self.info_buffer, 0, bytemuck::cast_slice(&[self.info]));
+    }
 
     pub(crate) fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         // get the current 'framebuffer'
@@ -264,6 +321,7 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_bind_group(0, &self.info_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             //render_pass.draw(0..3, 0..1);

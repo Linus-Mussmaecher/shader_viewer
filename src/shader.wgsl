@@ -1,5 +1,15 @@
 // Vertex shader
 
+struct ShaderInfo{
+    time: u32,
+    w: u32,
+    h: u32,
+}
+
+@group(0) @binding(0)
+var<uniform> shader_info: ShaderInfo;
+
+
 struct VertexInput{
     @location(0) position: vec3<f32>,
 }
@@ -7,6 +17,7 @@ struct VertexInput{
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) vert_pos: vec3<f32>,
+    @location(1) time: u32,
 };
 
 
@@ -17,6 +28,7 @@ fn vs_main(
     var out: VertexOutput;
     out.clip_position = vec4<f32>(vertex.position.xyz,1.0);
     out.vert_pos = out.clip_position.xyz;
+    out.time = shader_info.time;
     return out;
 }
 
@@ -25,7 +37,7 @@ fn vs_main(
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var val: f32 = 0.1;
     if sdPi(in.vert_pos.xy) < 0.01 {
-        val = 0.7;
+        val = sin(f32(in.time) / 314.);
     }
 
     return vec4<f32>(0.4, 0.4, val, 1.0);

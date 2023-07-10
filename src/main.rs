@@ -38,9 +38,6 @@ async fn run() {
                         WindowEvent::CloseRequested => {
                             *control_flow = ControlFlow::Exit;
                         }
-                        WindowEvent::CursorEntered { device_id: _ } => {
-                            println!("Entered!");
-                        }
                         WindowEvent::Resized(physical_size) => {
                             state.resize(*physical_size);
                         }

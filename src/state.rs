@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use wgpu::util::DeviceExt;
 use winit::window::Window;
 
@@ -15,6 +17,7 @@ pub struct State {
     index_buffer: wgpu::Buffer,
 
     // info
+    last_time: Instant,
     info: ShaderInfo,
     info_buffer: wgpu::Buffer,
     info_bind_group: wgpu::BindGroup,
@@ -23,7 +26,7 @@ pub struct State {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct ShaderInfo {
-    time: u32,
+    time: f32,
     w: u32,
     h: u32,
 }
@@ -33,23 +36,32 @@ struct ShaderInfo {
 ///                 -> surface
 const VERTICES: &[Vertex] = &[
     Vertex {
-        position: [-0.0868241, 0.49240386, 0.0],
+        position: [-1.0, -1.0, 0.0],
     },
     Vertex {
-        position: [-0.49513406, 0.06958647, 0.0],
+        position: [4.0, -1.0, 0.0],
     },
     Vertex {
-        position: [-0.21918549, -0.44939706, 0.0],
+        position: [-1.0, 4.0, 0.0],
     },
-    Vertex {
-        position: [0.35966998, -0.3473291, 0.0],
-    },
-    Vertex {
-        position: [0.44147372, 0.2347359, 0.0],
-    },
+    // Vertex {
+    //     position: [-0.0868241, 0.49240386, 0.0],
+    // },
+    // Vertex {
+    //     position: [-0.49513406, 0.06958647, 0.0],
+    // },
+    // Vertex {
+    //     position: [-0.21918549, -0.44939706, 0.0],
+    // },
+    // Vertex {
+    //     position: [0.35966998, -0.3473291, 0.0],
+    // },
+    // Vertex {
+    //     position: [0.44147372, 0.2347359, 0.0],
+    // },
 ];
 
-const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
+const INDICES: &[u16] = &[0, 1, 2];
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -145,7 +157,7 @@ impl State {
         let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 
         let info = ShaderInfo {
-            time: 0,
+            time: 0.0,
             w: size.width,
             h: size.height,
         };
@@ -252,6 +264,7 @@ impl State {
             render_pipeline,
             vertex_buffer,
             index_buffer,
+            last_time: Instant::now(),
             info,
             info_buffer,
             info_bind_group,
@@ -276,7 +289,13 @@ impl State {
     }
 
     pub(crate) fn update(&mut self) {
-        self.info.time += 1;
+        self.info.w = self.size.width;
+        self.info.h = self.size.height;
+        let now = std::time::Instant::now();
+        self.info.time += (now.checked_duration_since(self.last_time))
+            .unwrap_or_default()
+            .as_secs_f32();
+        self.last_time = now;
         self.queue
             .write_buffer(&self.info_buffer, 0, bytemuck::cast_slice(&[self.info]));
     }

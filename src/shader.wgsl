@@ -1,7 +1,7 @@
 // Vertex shader
 
 struct ShaderInfo{
-    time: u32,
+    time: f32,
     w: u32,
     h: u32,
 }
@@ -16,8 +16,8 @@ struct VertexInput{
 
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
-    @location(0) vert_pos: vec3<f32>,
-    @location(1) time: u32,
+    @location(0) vert_pos: vec2<f32>,
+    @location(1) time: f32,
 };
 
 
@@ -27,7 +27,8 @@ fn vs_main(
 ) -> VertexOutput{
     var out: VertexOutput;
     out.clip_position = vec4<f32>(vertex.position.xyz,1.0);
-    out.vert_pos = out.clip_position.xyz;
+    out.vert_pos = out.clip_position.xy;
+    out.vert_pos.x *= f32(shader_info.w) / f32(shader_info.h);
     out.time = shader_info.time;
     return out;
 }
@@ -35,12 +36,50 @@ fn vs_main(
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    var val: f32 = 0.1;
-    if sdPi(in.vert_pos.xy) < 0.01 {
-        val = sin(f32(in.time) / 314.);
+    let time = in.time;
+    let uv = in.vert_pos.xy;
+
+    var color = palette(sdPi(uv) + time);
+
+    let angle = 6.28 * cos(time);
+
+    let uv_turn = vec2(uv.x * cos(angle) - uv.y * sin(angle), uv.y * cos(angle) + uv.x * sin(angle) );
+
+    var r = sin(8. * sdPi(uv) - time);
+
+    r = min(abs(r), sdPi(uv_turn));
+    r = 0.02 / r;
+
+    var uv2 = uv;
+    
+
+    for (var i = 0.0; i < 4.0; i+= 1.0){
+        uv2 = abs(fract((0.7 + 0.07 * sin(0.628 *  time) + 0.45 * sin(0.0314 *  time)) * uv2) - 0.5);
+
+        r = r + 0.02 / sin(31.4 * (
+            abs(length(uv2))
+        ) + time);
     }
 
-    return vec4<f32>(0.4, 0.4, val, 1.0);
+    if (sdPi(uv_turn)<= 0.0){
+        color = 0.0 * color;
+    } else {
+        color = r * color;
+    }   
+
+    r = pow(r, 1.2);
+    
+    return vec4(color, 1.0);
+}
+
+fn palette(t: f32) -> vec3<f32>
+{
+    let a = vec3(0.975, 0.827, 1.836);
+    let b = vec3(0.973, 0.903, 0.811);
+    let c = vec3(1.062, 0.055, 0.881);
+    let d = vec3(0.389, 5.670, 4.065);
+
+    return a + b*cos( 6.28318*(c*t+d) );
 }
 
 fn sdUnevenCapsule(p: vec2<f32>, r1: f32, r2: f32, h: f32 ) -> f32

@@ -39,7 +39,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let time = in.time;
     let uv = in.vert_pos.xy;
 
-    var color = palette(sdPi(uv) + time + 0.5 * sin(uv.y * sin(6.28 * time)));
+    var color = palette(sdPi(uv) + time + 0.5 * sin(uv.y * sin(0.0628 * time)));
 
     let angle = 6.28 * cos(time);
 

@@ -284,7 +284,28 @@ impl State {
         }
     }
 
-    pub(crate) fn input(&mut self, _event: &winit::event::WindowEvent) -> bool {
+    pub(crate) fn input(&mut self, event: &winit::event::WindowEvent) -> bool {
+        if let winit::event::WindowEvent::KeyboardInput {
+            input:
+                winit::event::KeyboardInput {
+                    virtual_keycode,
+                    state: winit::event::ElementState::Pressed,
+                    ..
+                },
+            ..
+        } = event
+        {
+            match virtual_keycode {
+                Some(winit::event::VirtualKeyCode::Left) => {
+                    self.info.time -= 1.0;
+                }
+                Some(winit::event::VirtualKeyCode::Right) => {
+                    self.info.time += 1.0;
+                }
+                _ => {}
+            }
+        }
+
         false
     }
 

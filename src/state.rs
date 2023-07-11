@@ -12,6 +12,8 @@ pub struct State {
     window: Window,
     render_pipeline: wgpu::RenderPipeline,
 
+    pause: bool,
+
     // buffers
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -261,6 +263,7 @@ impl State {
             config,
             size,
             window,
+            pause: false,
             render_pipeline,
             vertex_buffer,
             index_buffer,
@@ -302,6 +305,9 @@ impl State {
                 Some(winit::event::VirtualKeyCode::Right) => {
                     self.info.time += 1.0;
                 }
+                Some(winit::event::VirtualKeyCode::Space) => {
+                    self.pause = !self.pause;
+                }
                 _ => {}
             }
         }
@@ -313,9 +319,11 @@ impl State {
         self.info.w = self.size.width;
         self.info.h = self.size.height;
         let now = std::time::Instant::now();
-        self.info.time += (now.checked_duration_since(self.last_time))
-            .unwrap_or_default()
-            .as_secs_f32();
+        if !self.pause {
+            self.info.time += (now.checked_duration_since(self.last_time))
+                .unwrap_or_default()
+                .as_secs_f32();
+        }
         self.last_time = now;
         self.queue
             .write_buffer(&self.info_buffer, 0, bytemuck::cast_slice(&[self.info]));

@@ -41,10 +41,10 @@ const VERTICES: &[Vertex] = &[
         position: [-1.0, -1.0, 0.0],
     },
     Vertex {
-        position: [4.0, -1.0, 0.0],
+        position: [3.0, -1.0, 0.0],
     },
     Vertex {
-        position: [-1.0, 4.0, 0.0],
+        position: [-1.0, 3.0, 0.0],
     },
     // Vertex {
     //     position: [-0.0868241, 0.49240386, 0.0],

@@ -52,7 +52,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     var uv2 = uv;
 
-    color = pow(r, 1.2) * color;
+    color = r * color;
 
     for (var i = 0.0; i < 4.0; i += 1.0) {
         uv2 = abs(fract((0.7 + 0.07 * sin(0.628 * time) + 0.45 * sin(0.0314 * time)) * uv2) - 0.5);
@@ -61,7 +61,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         //     abs(length(uv2))
         // ) + time);
 
-        let sub_r = 0.02 / sin(31.4 * (abs(length(uv2))) + time);
+        let sub_r = 0.01 / sin(31.4 * (abs(length(uv2))) + time);
 
         color += sub_r * palette(length(uv2) + time + i / 0.314);
     }
@@ -69,6 +69,8 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     if sdPi(uv_turn) <= 0.0 {
         color = 0.0 * color;
     }
+
+    color = pow(color, vec3(1.6));
 
     return vec4(color, 1.0);
 }

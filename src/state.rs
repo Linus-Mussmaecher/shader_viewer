@@ -159,7 +159,7 @@ impl State {
         let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 
         let info = ShaderInfo {
-            time: 0.0,
+            time: 286.0, //96.0,
             w: size.width,
             h: size.height,
         };

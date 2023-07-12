@@ -307,6 +307,7 @@ impl State {
                 }
                 Some(winit::event::VirtualKeyCode::Space) => {
                     self.pause = !self.pause;
+                    println!("{}", self.info.time);
                 }
                 _ => {}
             }

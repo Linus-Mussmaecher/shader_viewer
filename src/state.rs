@@ -20,6 +20,7 @@ pub struct State {
 
     // info
     last_time: Instant,
+    progress_speed: f32,
     info: ShaderInfo,
     info_buffer: wgpu::Buffer,
     info_bind_group: wgpu::BindGroup,
@@ -268,6 +269,7 @@ impl State {
             vertex_buffer,
             index_buffer,
             last_time: Instant::now(),
+            progress_speed: 1.0,
             info,
             info_buffer,
             info_bind_group,
@@ -300,16 +302,32 @@ impl State {
         {
             match virtual_keycode {
                 Some(winit::event::VirtualKeyCode::Left) => {
-                    self.info.time -= 1.0;
+                    self.info.time -= 1.0 * self.progress_speed;
                 }
                 Some(winit::event::VirtualKeyCode::Right) => {
-                    self.info.time += 1.0;
+                    self.info.time += 1.0 * self.progress_speed;
+                }
+                Some(winit::event::VirtualKeyCode::Down) => {
+                    self.info.time -= 0.1 * self.progress_speed;
+                }
+                Some(winit::event::VirtualKeyCode::Up) => {
+                    self.info.time += 0.1 * self.progress_speed;
+                }
+                Some(winit::event::VirtualKeyCode::Equals) => {
+                    self.progress_speed *= 1.5;
+                }
+                Some(winit::event::VirtualKeyCode::Minus) => {
+                    self.progress_speed *= 2.0 / 3.0;
+                }
+                Some(winit::event::VirtualKeyCode::P) => {
+                    self.progress_speed = 1.0;
                 }
                 Some(winit::event::VirtualKeyCode::Space) => {
                     self.pause = !self.pause;
                     println!("{}", self.info.time);
                 }
-                _ => {}
+                Some(_) => {}
+                None => {}
             }
         }
 
@@ -323,7 +341,8 @@ impl State {
         if !self.pause {
             self.info.time += (now.checked_duration_since(self.last_time))
                 .unwrap_or_default()
-                .as_secs_f32();
+                .as_secs_f32()
+                * self.progress_speed;
         }
         self.last_time = now;
         self.queue

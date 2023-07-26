@@ -313,7 +313,8 @@ impl State {
                 Some(winit::event::VirtualKeyCode::Up) => {
                     self.info.time += 0.1 * self.progress_speed;
                 }
-                Some(winit::event::VirtualKeyCode::Equals) => {
+                Some(winit::event::VirtualKeyCode::Equals)
+                | Some(winit::event::VirtualKeyCode::Plus) => {
                     self.progress_speed *= 1.5;
                 }
                 Some(winit::event::VirtualKeyCode::Minus) => {

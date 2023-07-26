@@ -90,8 +90,8 @@ fn palette(t: f32) -> vec3<f32> {
     return a + b * cos(6.28318 * (c * t + d));
 }
 
-fn sdUnevenCapsule(p: vec2<f32>, r1: f32, r2: f32, h: f32) -> f32 {
-    var p: vec2<f32> = p;
+fn sdUnevenCapsule(p_par: vec2<f32>, r1: f32, r2: f32, h: f32) -> f32 {
+    var p: vec2<f32> = p_par;
     p.x = abs(p.x);
     let b = (r1 - r2) / h;
     let a = sqrt(1.0 - b * b);
@@ -105,8 +105,8 @@ fn sdUnevenCapsule(p: vec2<f32>, r1: f32, r2: f32, h: f32) -> f32 {
     return dot(p, vec2(a, b)) - r1;
 }
 
-fn sdRoundedBox(p: vec2<f32>, b: vec2<f32>, r: vec4<f32>) -> f32 {
-    var r: vec4<f32> = r;
+fn sdRoundedBox(p: vec2<f32>, b: vec2<f32>, r_par: vec4<f32>) -> f32 {
+    var r: vec4<f32> = r_par;
     r.x = select(r.z, r.x, p.x > 0.0);
     r.y = select(r.w, r.y, p.x > 0.0);
     r.x = select(r.y, r.x, p.y > 0.0);
